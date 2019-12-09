@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.ActivityNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.Manifest;
@@ -37,6 +39,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import com.facebook.common.logging.FLog;
 import com.facebook.react.views.scroll.ScrollEvent;
 import com.facebook.react.views.scroll.ScrollEventType;
 import com.facebook.react.views.scroll.OnScrollDispatchHelper;
@@ -49,6 +52,7 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.common.build.ReactBuildConfig;
+import com.facebook.react.common.ReactConstants;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -70,12 +74,15 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -124,8 +131,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   protected static final String REACT_CLASS = "RNCWebView";
   protected static final String HTML_ENCODING = "UTF-8";
   protected static final String HTML_MIME_TYPE = "text/html";
-  protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
+  // protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
+  protected static final String JAVASCRIPT_INTERFACE = "ctandroid";
   protected static final String HTTP_METHOD_POST = "POST";
+  private static final String INTENT_URL_PREFIX = "intent://";
+
   // Use `webView.loadUrl("about:blank")` to reliably reset the view
   // state and release page resources (including any running JavaScript).
   protected static final String BLANK_URL = "about:blank";
@@ -740,15 +750,145 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           createWebViewEvent(webView, url)));
     }
 
+    public boolean getShouldOverrideUrlLoading(WebView view, String url) {
+        if (url.equals(BLANK_URL)) return false;
+
+        // url blacklistings
+        if (mUrlPrefixesForDefaultIntent != null && mUrlPrefixesForDefaultIntent.size() > 0) {
+            ArrayList<Object> urlPrefixesForDefaultIntent = mUrlPrefixesForDefaultIntent.toArrayList();
+            for (Object urlPrefix : urlPrefixesForDefaultIntent) {
+                if (url.startsWith((String) urlPrefix)) {
+                    launchIntent(view.getContext(), view, url);
+                    return true;
+                }
+            }
+        }
+
+        // if (mOriginWhitelist != null && shouldHandleURL(mOriginWhitelist, url)) {
+        //     return false;
+        // }
+
+        launchIntent(view.getContext(), view, url);
+        return true;
+    }
+
+    private void launchIntent(Context context, WebView view, String url) {
+      Intent intent = null;
+
+      // URLs starting with 'intent://' require special handling.
+      if (url.startsWith(INTENT_URL_PREFIX) || url.contains("com.ahnlab.v3mobileplus") || url.contains("ahnlabv3mobileplus")) {
+          try {
+              intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+          } catch (URISyntaxException e) {
+              FLog.e(ReactConstants.TAG, "Can't parse intent:// URI", e);
+          }
+      }
+
+      if (url.startsWith(PaymentSchema.IAMPORT_APP_SCHEME)) {
+          // "iamportapp://https://pgcompany.com/foo/bar"와 같은 형태로 들어옴
+          String redirectURL = url.substring(PaymentSchema.IAMPORT_APP_SCHEME.length() + "://".length());
+          view.loadUrl(redirectURL);
+      }
+
+      if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("javascript:")) {
+          try {
+              try {
+                  intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME); // IntentURI처리
+                  Uri uri = Uri.parse(intent.getDataString());
+                  intent = new Intent(Intent.ACTION_VIEW, uri);
+              } catch (URISyntaxException e) {
+                  FLog.e(ReactConstants.TAG, "Can't parse intent:// URI", e);
+              }
+          } catch (ActivityNotFoundException e) {
+              if ( intent != null ) {
+                  String scheme = intent.getScheme();
+
+                  // 설치되지 않은 앱에 대해 사전 처리(Google Play이동 등 필요한 처리)
+                  if (PaymentSchema.ISP.equalsIgnoreCase(scheme)) {
+                      intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PaymentSchema.PACKAGE_ISP));
+                  } else if (PaymentSchema.BANKPAY.equalsIgnoreCase(scheme)) {
+                      intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PaymentSchema.PACKAGE_BANKPAY));
+                  }
+              }
+          }
+      }
+
+      if (intent != null) {
+          // This is needed to prevent security issue where non-exported activities from the same process can be started with intent:// URIs.
+          // See: T10607927/S136245
+          intent.addCategory(Intent.CATEGORY_BROWSABLE);
+          intent.setComponent(null);
+          intent.setSelector(null);
+
+          PackageManager packageManager = context.getPackageManager();
+          ResolveInfo info = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+          if (info != null) {
+              // App is installed.
+              context.startActivity(intent);
+          } else {
+              if (intent.hasExtra("browser_fallback_url")) {
+                  String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+                  intent = new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl));
+              } else if (intent.getPackage() != null) {
+                  String packageName = intent.getPackage();
+                  context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName)));
+                  return;
+              }
+          }
+        } else {
+            view.loadUrl(url);
+            return;
+        }
+
+        try {
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            FLog.w(ReactConstants.TAG, "activity not found to handle uri scheme for: " + url, e);
+        }
+    }
+
+    private boolean shouldHandleURL(List<Pattern> originWhitelist, String url) {
+      Uri uri = Uri.parse(url);
+      String scheme = uri.getScheme() != null ? uri.getScheme() : "";
+      String authority = uri.getAuthority() != null ? uri.getAuthority() : "";
+      String urlToCheck = scheme + "://" + authority;
+      for (Pattern pattern : originWhitelist) {
+          if (pattern.matcher(urlToCheck).matches()) {
+              return true;
+          }
+      }
+      return false;
+    }
+
+    // @Override
+    // public boolean shouldOverrideUrlLoading(WebView view, String url) {
+    //     boolean shouldOverride = getShouldOverrideUrlLoading(view, url);
+    //     String finalUrl = ((CustomWebView) view).getFinalUrl();
+    //     if (!shouldOverride && url != null && finalUrl != null && new String(url).equals(finalUrl)) {
+    //         final WritableMap params = Arguments.createMap();
+    //         dispatchEvent(view, new NavigationCompletedEvent(view.getId(), params));
+    //     }
+
+    //     return shouldOverride;
+    // }
+
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+      boolean shouldOverride = getShouldOverrideUrlLoading(view, url);
+      // if (!shouldOverride && url != null && finalUrl != null && new String(url).equals(finalUrl)) {
+      //   final WritableMap params = Arguments.createMap();
+      //   dispatchEvent(view, new NavigationCompletedEvent(view.getId(), params));
+      // }
       activeUrl = url;
       dispatchEvent(
         view,
         new TopShouldStartLoadWithRequestEvent(
           view.getId(),
           createWebViewEvent(view, url)));
-      return true;
+      // return true;
+      return shouldOverride;
     }
 
 
@@ -1149,9 +1289,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       /**
        * This method is called whenever JavaScript running within the web view calls:
        * - window[JAVASCRIPT_INTERFACE].postMessage
+       * 
+       * 클래스팅 안드로이드 웹뷰 브릿지 기존 형태 유지 
+       * - window.ctandroid.submitFromWeb 으로 형태 변경
        */
       @JavascriptInterface
-      public void postMessage(String message) {
+      public void submitFromWeb(String message) {
         mContext.onMessage(message);
       }
     }
