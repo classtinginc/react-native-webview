@@ -122,6 +122,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public static final int COMMAND_INJECT_JAVASCRIPT = 6;
   public static final int COMMAND_LOAD_URL = 7;
   public static final int COMMAND_FOCUS = 8;
+  public static final int COMMAND_GET_CAN_GO_BACK = 9;
 
   // android commands
   public static final int COMMAND_CLEAR_FORM_DATA = 1000;
@@ -573,6 +574,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       .put("clearFormData", COMMAND_CLEAR_FORM_DATA)
       .put("clearCache", COMMAND_CLEAR_CACHE)
       .put("clearHistory", COMMAND_CLEAR_HISTORY)
+      .put("getCanGoBack", COMMAND_GET_CAN_GO_BACK)
       .build();
   }
 
@@ -634,6 +636,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       case COMMAND_CLEAR_HISTORY:
         root.clearHistory();
         break;
+      case COMMAND_GET_CAN_GO_BACK:
+        WritableMap payload = Arguments.createMap();
+        payload.putBoolean("canGoBack", root.canGoBack());
+        Event canGoBackEvent = new Event(root.getId(), payload);
+        dispatchEvent(root, canGoBackEvent);
     }
   }
 
