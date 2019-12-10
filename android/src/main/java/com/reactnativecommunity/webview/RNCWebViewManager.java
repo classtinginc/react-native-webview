@@ -68,6 +68,7 @@ import com.reactnativecommunity.webview.events.TopLoadingProgressEvent;
 import com.reactnativecommunity.webview.events.TopLoadingStartEvent;
 import com.reactnativecommunity.webview.events.TopMessageEvent;
 import com.reactnativecommunity.webview.events.TopShouldStartLoadWithRequestEvent;
+import com.reactnativecommunity.webview.events.TopCanGoBackEvent;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -639,7 +640,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       case COMMAND_GET_CAN_GO_BACK:
         WritableMap payload = Arguments.createMap();
         payload.putBoolean("canGoBack", root.canGoBack());
-        Event canGoBackEvent = new Event(root.getId(), payload);
+        Event canGoBackEvent = new TopCanGoBackEvent(root.getId(), payload);
         dispatchEvent(root, canGoBackEvent);
     }
   }
