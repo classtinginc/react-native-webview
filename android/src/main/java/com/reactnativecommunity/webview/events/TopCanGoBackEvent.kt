@@ -7,7 +7,7 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
 /**
  * Event emitted when there is getCanGoBack command called.
  */
-class TopCanGoBackEvent(viewId: Int, private val mEventData: WritableMap) : Event<TopMessageEvent>(viewId) {
+class TopCanGoBackEvent(viewId: Int, private val mEventData: WritableMap) : Event<TopCanGoBackEvent>(viewId) {
   companion object {
     const val EVENT_NAME = "topCanGoBackEvent"
   }
