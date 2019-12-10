@@ -28,6 +28,7 @@ import {
   NativeWebViewAndroid,
   State,
   RNCWebViewUIManagerAndroid,
+  WebViewEvent,
 } from './WebViewTypes';
 
 import styles from './WebView.styles';
@@ -161,6 +162,14 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
     );
   };
 
+  getCanGoBack = () => {
+    UIManager.dispatchViewManagerCommand(
+      this.getWebViewHandle(),
+      this.getCommands().getCanGoBack,
+      undefined,
+    )
+  }
+
   /**
    * We return an event with a bunch of fields including:
    *  url, title, loading, canGoBack, canGoForward
@@ -266,6 +275,13 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       );
     }
   };
+
+  onGoBack = (event: WebViewEvent) => {
+    const { onGoBack } = this.props;
+    if (onGoBack) {
+      onGoBack(event);
+    }
+  }
 
   render() {
     const {
