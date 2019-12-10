@@ -61,6 +61,7 @@ import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.ContentSizeChangeEvent;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.reactnativecommunity.webview.events.TopLoadingErrorEvent;
 import com.reactnativecommunity.webview.events.TopHttpErrorEvent;
 import com.reactnativecommunity.webview.events.TopLoadingFinishEvent;
@@ -68,7 +69,6 @@ import com.reactnativecommunity.webview.events.TopLoadingProgressEvent;
 import com.reactnativecommunity.webview.events.TopLoadingStartEvent;
 import com.reactnativecommunity.webview.events.TopMessageEvent;
 import com.reactnativecommunity.webview.events.TopShouldStartLoadWithRequestEvent;
-import com.reactnativecommunity.webview.events.TopCanGoBackEvent;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -640,8 +640,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       case COMMAND_GET_CAN_GO_BACK:
         WritableMap payload = Arguments.createMap();
         payload.putBoolean("canGoBack", root.canGoBack());
-        Event canGoBackEvent = new TopCanGoBackEvent(root.getId(), payload);
-        dispatchEvent(root, canGoBackEvent);
+        ReactContext reactContext = (ReactContext) root.getContext();
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onGoBack", payload);
     }
   }
 
@@ -772,10 +772,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
             }
         }
 
-        // if (mOriginWhitelist != null && shouldHandleURL(mOriginWhitelist, url)) {
-        //     return false;
-        // }
-
         launchIntent(view.getContext(), view, url);
         return true;
     }
@@ -857,38 +853,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         }
     }
 
-    private boolean shouldHandleURL(List<Pattern> originWhitelist, String url) {
-      Uri uri = Uri.parse(url);
-      String scheme = uri.getScheme() != null ? uri.getScheme() : "";
-      String authority = uri.getAuthority() != null ? uri.getAuthority() : "";
-      String urlToCheck = scheme + "://" + authority;
-      for (Pattern pattern : originWhitelist) {
-          if (pattern.matcher(urlToCheck).matches()) {
-              return true;
-          }
-      }
-      return false;
-    }
-
-    // @Override
-    // public boolean shouldOverrideUrlLoading(WebView view, String url) {
-    //     boolean shouldOverride = getShouldOverrideUrlLoading(view, url);
-    //     String finalUrl = ((CustomWebView) view).getFinalUrl();
-    //     if (!shouldOverride && url != null && finalUrl != null && new String(url).equals(finalUrl)) {
-    //         final WritableMap params = Arguments.createMap();
-    //         dispatchEvent(view, new NavigationCompletedEvent(view.getId(), params));
-    //     }
-
-    //     return shouldOverride;
-    // }
-
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
       boolean shouldOverride = getShouldOverrideUrlLoading(view, url);
-      // if (!shouldOverride && url != null && finalUrl != null && new String(url).equals(finalUrl)) {
-      //   final WritableMap params = Arguments.createMap();
-      //   dispatchEvent(view, new NavigationCompletedEvent(view.getId(), params));
-      // }
       activeUrl = url;
       dispatchEvent(
         view,
