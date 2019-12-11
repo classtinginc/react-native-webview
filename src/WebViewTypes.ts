@@ -676,7 +676,7 @@ export interface WebViewSharedProps extends ViewProps {
   /**
    * Function that is invoked when receiving canGoBack.
    */
-  onGoBack?: (event: WebViewEvent) => void;
+  onGoBack?: (status: object) => void;
 
   /**
    * Boolean value that forces the `WebView` to show the loading view

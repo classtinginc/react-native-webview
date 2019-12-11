@@ -276,10 +276,10 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
     }
   };
 
-  onGoBack = (event: WebViewEvent) => {
+  onGoBack = (status: object) => {
     const { onGoBack } = this.props;
     if (onGoBack) {
-      onGoBack(event);
+      onGoBack(status);
     }
   }
 
