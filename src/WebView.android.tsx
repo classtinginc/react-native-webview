@@ -35,7 +35,7 @@ import styles from './WebView.styles';
 const UIManager = NotTypedUIManager as RNCWebViewUIManagerAndroid;
 
 const RNCWebView = requireNativeComponent(
-  'RCTCustomWebView',
+  'RNCWebView',
 ) as typeof NativeWebViewAndroid;
 const { resolveAssetSource } = Image;
 
