@@ -70,7 +70,7 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
 
   webViewRef = React.createRef<NativeWebViewAndroid>();
 
-  getCommands = () => UIManager.getViewManagerConfig('RNCWebView').Commands;
+  getCommands = () => UIManager.getViewManagerConfig('RCTCustomWebView').Commands;
 
   goForward = () => {
     UIManager.dispatchViewManagerCommand(
@@ -160,6 +160,14 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       [data],
     );
   };
+
+  getCanGoBack = () => {
+    UIManager.dispatchViewManagerCommand(
+      this.getWebViewHandle(),
+      this.getCommands().getNavigationCanGoBack,
+      undefined,
+    )
+  }
 
   /**
    * We return an event with a bunch of fields including:
@@ -266,6 +274,13 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       );
     }
   };
+
+  onGoBack = (status: object) => {
+    const { onGoBack } = this.props;
+    if (onGoBack) {
+      onGoBack(status);
+    }
+  }
 
   render() {
     const {

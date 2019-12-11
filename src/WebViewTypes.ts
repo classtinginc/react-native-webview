@@ -12,7 +12,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 
-type WebViewCommands = 'goForward' | 'goBack' | 'reload' | 'stopLoading' | 'postMessage' | 'injectJavaScript' | 'loadUrl' | 'requestFocus';
+type WebViewCommands = 'goForward' | 'goBack' | 'reload' | 'stopLoading' | 'postMessage' | 'injectJavaScript' | 'loadUrl' | 'requestFocus' | 'getNavigationCanGoBack';
 
 type AndroidWebViewCommands = 'clearHistory' | 'clearCache' | 'clearFormData';
 
@@ -672,6 +672,8 @@ export interface WebViewSharedProps extends ViewProps {
    * Function that is invoked when the `WebView` is loading.
    */
   onLoadProgress?: (event: WebViewProgressEvent) => void;
+
+  onGoBack?: (status: object) => void;
 
   /**
    * Boolean value that forces the `WebView` to show the loading view
