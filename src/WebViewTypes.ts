@@ -19,6 +19,7 @@ export interface WebViewCommands {
   injectJavaScript: Function;
   loadUrl: Function;
   requestFocus: Function;
+  getNavigationCanGoBack: Function;
 }
 
 export interface CustomUIManager extends UIManagerStatic {
@@ -39,6 +40,9 @@ export interface CustomUIManager extends UIManagerStatic {
     Commands: WebViewCommands;
   };
   RNCWebView: {
+    Commands: WebViewCommands;
+  };
+  RCTCustomWebView: {
     Commands: WebViewCommands;
   };
 }
@@ -450,6 +454,7 @@ export interface IOSWebViewProps extends WebViewSharedProps {
 export interface AndroidWebViewProps extends WebViewSharedProps {
   onNavigationStateChange?: (event: WebViewNavigation) => void;
   onContentSizeChange?: (event: WebViewEvent) => void;
+  onGoBack?: (event: object) => void;
 
   /**
    * https://developer.android.com/reference/android/view/View#OVER_SCROLL_NEVER

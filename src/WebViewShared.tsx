@@ -66,7 +66,7 @@ const createOnShouldStartLoadWithRequest = (
 };
 
 const getViewManagerConfig = (
-  viewManagerName: 'RNCUIWebView' | 'RNCWKWebView' | 'RNCWebView',
+  viewManagerName: 'RNCUIWebView' | 'RNCWKWebView' | 'RNCWebView' | 'RCTCustomWebView',
 ) => {
   if (!UIManager.getViewManagerConfig) {
     return UIManager[viewManagerName];

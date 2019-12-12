@@ -68,7 +68,7 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
 
   webViewRef = React.createRef<NativeWebViewAndroid>();
 
-  getCommands = () => getViewManagerConfig('RNCWebView').Commands;
+  getCommands = () => getViewManagerConfig('RCTCustomWebView').Commands;
 
   goForward = () => {
     UIManager.dispatchViewManagerCommand(
@@ -85,6 +85,14 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       null,
     );
   };
+
+  getCanGoBack = () => {
+    UIManager.dispatchViewManagerCommand(
+      this.getWebViewHandle(),
+      this.getCommands().getNavigationCanGoBack,
+      null,
+    )
+  }
 
   reload = () => {
     this.setState({
@@ -219,6 +227,13 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       );
     }
   };
+
+  onGoBack = (status: object) => {
+    const { onGoBack } = this.props;
+    if (onGoBack) {
+      onGoBack(status);
+    }
+  }
 
   render() {
     const {
