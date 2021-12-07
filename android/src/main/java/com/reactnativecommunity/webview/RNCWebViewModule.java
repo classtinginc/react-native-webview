@@ -40,6 +40,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.classtinginc.image_picker.models.Image;
+import com.classtinginc.image_picker.consts.Extra;
+import com.classtinginc.image_picker.folders.LocalFoldersActivity;
+import com.google.gson.Gson;
+
 import static android.app.Activity.RESULT_OK;
 
 @ReactModule(name = RNCWebViewModule.MODULE_NAME)
@@ -53,6 +58,11 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
   private File outputImage;
   private File outputVideo;
   private DownloadManager.Request downloadRequest;
+
+  // Image picker constants
+  private int IMAGE_PICKER_STYLE = 0;
+  private int IMAGE_PICKER_MAX_SIZE = 10;
+  private int IMAGE_PICKER_AVAILABLE_SIZE = 50;
 
   protected static class ShouldOverrideUrlLoadingLock {
     protected enum ShouldOverrideCallbackState {
@@ -221,6 +231,16 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
       return null;
     }
 
+    // From Classting custom image picker
+    if (data.hasExtra(Extra.DATA)) {
+      Image[] images = new Gson().fromJson(data.getStringExtra(Extra.DATA), Image[].class);
+      ArrayList<Uri> uriList = new ArrayList();
+      for (Image image: images) {
+        uriList.add(Uri.fromFile(new File(image.getThumbPath())));
+      }
+      return uriList.toArray(new Uri[uriList.size()]);
+    }
+
     // we have multiple files selected
     if (data.getClipData() != null) {
       final int numSelectedFiles = data.getClipData().getItemCount();
@@ -269,6 +289,7 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   public boolean startPhotoPickerIntent(final ValueCallback<Uri[]> callback, final String[] acceptTypes, final boolean allowMultiple) {
+    Activity activity = getCurrentActivity();
     filePathCallback = callback;
 
     ArrayList<Parcelable> extraIntents = new ArrayList<>();
@@ -288,15 +309,20 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
     }
 
     Intent fileSelectionIntent = getFileChooserIntent(acceptTypes, allowMultiple);
+    Intent imagePickerIntent = getImagePickerIntent(acceptTypes, allowMultiple);
 
     Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
-    chooserIntent.putExtra(Intent.EXTRA_INTENT, fileSelectionIntent);
-    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toArray(new Parcelable[]{}));
+    if (imagePickerIntent == null) {
+      chooserIntent.putExtra(Intent.EXTRA_INTENT, fileSelectionIntent);
+      chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toArray(new Parcelable[]{}));
 
-    if (chooserIntent.resolveActivity(getCurrentActivity().getPackageManager()) != null) {
-      getCurrentActivity().startActivityForResult(chooserIntent, PICKER);
+      if (chooserIntent.resolveActivity(activity.getPackageManager()) != null) {
+        activity.startActivityForResult(chooserIntent, PICKER);
+      } else {
+        Log.w("RNCWebViewModule", "there is no Activity to handle this Intent");
+      }
     } else {
-      Log.w("RNCWebViewModule", "there is no Activity to handle this Intent");
+      activity.startActivityForResult(imagePickerIntent, PICKER);
     }
 
     return true;
@@ -375,7 +401,7 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
       Log.e("CREATE FILE", "Error occurred while creating the File", e);
       e.printStackTrace();
     }
-    
+
     return intent;
   }
 
@@ -400,6 +426,19 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
     intent.putExtra(Intent.EXTRA_MIME_TYPES, getAcceptedMimeType(acceptTypes));
     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
     return intent;
+  }
+
+  private Intent getImagePickerIntent(String[] acceptTypes, boolean allowMultiple) {
+    if (acceptsImages(acceptTypes)) {
+      Intent intent = new Intent(getCurrentActivity(), LocalFoldersActivity.class);
+      intent.putExtra(Extra.STYLE, IMAGE_PICKER_STYLE);
+      intent.putExtra(Extra.MAX_SIZE, IMAGE_PICKER_MAX_SIZE);
+      intent.putExtra(Extra.AVAILABLE_SIZE, IMAGE_PICKER_AVAILABLE_SIZE);
+      intent.putExtra(Extra.ALLOW_MULTIPLE, allowMultiple);
+      return intent;
+    } else {
+      return null;
+    }
   }
 
   private Boolean acceptsImages(String types) {
