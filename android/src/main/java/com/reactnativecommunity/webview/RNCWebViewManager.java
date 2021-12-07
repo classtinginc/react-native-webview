@@ -2,6 +2,7 @@ package com.reactnativecommunity.webview;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -9,13 +10,17 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.Manifest;
+import android.media.MediaScannerConnection;
 import android.net.http.SslError;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -39,9 +44,11 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 
@@ -82,11 +89,15 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -134,7 +145,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public static final int COMMAND_CLEAR_CACHE = 1001;
   public static final int COMMAND_CLEAR_HISTORY = 1002;
 
-  protected static final String REACT_CLASS = "RNCWebView";
+  protected static final String REACT_CLASS = "RNCNativeWebView";
   protected static final String HTML_ENCODING = "UTF-8";
   protected static final String HTML_MIME_TYPE = "text/html";
   protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
@@ -208,41 +219,105 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
 
     webView.setDownloadListener(new DownloadListener() {
+      private String DOWNLOAD_SUB_DIR = "/Classting";
+
+      private void downloadBase64(String url, String contentDisposition, String mimetype) {
+        Activity mActivity = reactContext.getCurrentActivity();
+
+        if (ContextCompat.checkSelfPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+          ActivityCompat.requestPermissions(mActivity, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, 100);
+        } else {
+          try {
+            String base64EncodedString = url.substring(url.indexOf(",") + 1);
+            byte[] fileBytes = Base64.decode(base64EncodedString, Base64.DEFAULT);
+
+            String ext = mimetype.substring(mimetype.indexOf("/") + 1);
+            String fileName = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + "." + ext;
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS + this.DOWNLOAD_SUB_DIR);
+
+            File file = new File(path, fileName);
+
+            if (!path.exists()) {
+              path.mkdirs();
+            }
+
+            if (!file.exists()) {
+              file.createNewFile();
+            }
+
+            FileOutputStream os = new FileOutputStream(file);
+            os.write(fileBytes);
+            os.close();
+
+            String pathToString = file.getAbsolutePath();
+            MediaScannerConnection.scanFile(reactContext, new String[] { pathToString }, null, new MediaScannerConnection.OnScanCompletedListener() {
+              @Override
+              public void onScanCompleted(String path, Uri uri) {
+                  mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                      if (uri != null) {
+                        String successMsg = mActivity.getString(R.string.message_toast_download_success);
+                        Toast.makeText(reactContext, successMsg, Toast.LENGTH_LONG).show();
+                      }
+                    }
+                  });
+              }
+            });
+          } catch (Exception e) {
+            Log.w("download", "Error writing", e);
+            mActivity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                String failureMsg = mActivity.getString(R.string.message_toast_download_failure);
+                Toast.makeText(reactContext, failureMsg, Toast.LENGTH_LONG).show();
+              }
+            });
+          }
+        }
+      }
+
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
         webView.setIgnoreErrFailedForThisURL(url);
 
         RNCWebViewModule module = getModule(reactContext);
 
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        if (url.contains("data:")) {
+          this.downloadBase64(url, contentDisposition, mimetype);
+        } else {
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-        String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
-        String downloadMessage = "Downloading " + fileName;
+          String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+          String downloadMessage = "Downloading " + fileName;
 
-        //Attempt to add cookie, if it exists
-        URL urlObj = null;
-        try {
-          urlObj = new URL(url);
-          String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
-          String cookie = CookieManager.getInstance().getCookie(baseUrl);
-          request.addRequestHeader("Cookie", cookie);
-        } catch (MalformedURLException e) {
-          System.out.println("Error getting cookie for DownloadManager: " + e.toString());
-          e.printStackTrace();
+          //Attempt to add cookie, if it exists
+          URL urlObj = null;
+          try {
+            urlObj = new URL(url);
+            String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
+            String cookie = CookieManager.getInstance().getCookie(baseUrl);
+            request.addRequestHeader("Cookie", cookie);
+          } catch (MalformedURLException e) {
+            System.out.println("Error getting cookie for DownloadManager: " + e.toString());
+            e.printStackTrace();
+          }
+
+          //Finish setting up request
+          request.addRequestHeader("User-Agent", userAgent);
+          request.setTitle(fileName);
+          request.setDescription(downloadMessage);
+          request.allowScanningByMediaScanner();
+          request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+          request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+          module.setDownloadRequest(request);
+
+          if (module.grantFileDownloaderPermissions()) {
+            module.downloadFile();
+          }
         }
 
-        //Finish setting up request
-        request.addRequestHeader("User-Agent", userAgent);
-        request.setTitle(fileName);
-        request.setDescription(downloadMessage);
-        request.allowScanningByMediaScanner();
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
-        module.setDownloadRequest(request);
-
-        if (module.grantFileDownloaderPermissions()) {
-          module.downloadFile();
-        }
       }
     });
 

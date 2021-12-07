@@ -894,6 +894,43 @@ static NSDictionary* customCertificatesForHost;
 
 #endif // !TARGET_OS_OSX
 
+-(void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+  UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"AlertButtonConfirm", "") style:UIAlertActionStyleDefault
+       handler:^(UIAlertAction * action) {}];
+
+    UIViewController *viewController = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    if (viewController.presentedViewController && !viewController.presentedViewController.isBeingDismissed) {
+      viewController = viewController.presentedViewController;
+    }
+
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@""
+                                   message:@""
+                                   preferredStyle:UIAlertControllerStyleAlert];
+
+
+    [alert addAction:defaultAction];
+
+    NSLayoutConstraint *constraint = [NSLayoutConstraint
+        constraintWithItem:alert.view
+        attribute:NSLayoutAttributeHeight
+        relatedBy:NSLayoutRelationLessThanOrEqual
+        toItem:nil
+        attribute:NSLayoutAttributeNotAnAttribute
+        multiplier:1
+        constant:viewController.view.frame.size.height*2.0f];
+
+    [alert.view addConstraint:constraint];
+
+    if (error) {
+      alert.message = NSLocalizedString(@"AlertMessageDownloadFailure", "");
+    } else {
+      alert.message = NSLocalizedString(@"AlertMessageDownloadSuccess", "");
+    }
+
+    [viewController presentViewController:alert animated:YES completion:^{}];
+
+}
+
 /**
  * Decides whether to allow or cancel a navigation.
  * @see https://fburl.com/42r9fxob
@@ -919,6 +956,32 @@ static NSDictionary* customCertificatesForHost;
   WKNavigationType navigationType = navigationAction.navigationType;
   NSURLRequest *request = navigationAction.request;
   BOOL isTopFrame = [request.URL isEqual:request.mainDocumentURL];
+
+
+  NSString *base64Head = @"data:";
+  if ([request.URL.absoluteString rangeOfString:base64Head].location != NSNotFound) {
+    @try {
+      NSString *base64String = request.URL.absoluteString;
+
+      NSString *mimeType = [[base64String componentsSeparatedByString:@";"][0] componentsSeparatedByString:@":"][1];
+
+      if ([mimeType rangeOfString:@"image"].location == NSNotFound) {
+        return;
+      }
+
+      NSURL *url = [NSURL URLWithString:base64String];
+      NSData *data = [NSData dataWithContentsOfURL:url];
+      UIImage *convertedImage = [UIImage imageWithData:data scale:1.0];
+
+      UIImageWriteToSavedPhotosAlbum(convertedImage, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+
+      decisionHandler(WKNavigationActionPolicyCancel);
+      return;
+    } @catch (id exception) {
+      decisionHandler(WKNavigationActionPolicyCancel);
+      return;
+    }
+  }
 
   if (_onShouldStartLoadWithRequest) {
     NSMutableDictionary<NSString *, id> *event = [self baseEvent];
