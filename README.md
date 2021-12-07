@@ -1,5 +1,19 @@
 # React Native WebView - a Modern, Cross-Platform WebView for React Native
 
+## !!! Deprecated !!!
+
+- 본 저장소의 master 브랜치는 더이상 관리되지 않으며, [classting](https://github.com/classtinginc/react-native-webview/tree/classting) 브랜치에서 관리됩니다.
+- 변경 사항 적용 후 버전 태그를 추가하여 사용합니다.
+  ```json
+  dependencies: {
+    "react-native-scrollable-tab-view": "github:classtinginc/react-native-webview#v11.0.2-ct.1"
+  }
+  ```
+  - 태그 명명 규칙은 코드 베이스가 되는 `react-native-webview 의 버전` + `-ct.구분 숫자` 로 정의합니다.
+  - 예시) react-native-webview 11.0.2 버전에서 변경사항이 적용된 경우 `11.0.2-ct.1`
+
+---
+
 [![star this repo](http://githubbadges.com/star.svg?user=react-native-community&repo=react-native-webview&style=flat)](https://github.com/react-native-community/react-native-webview)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![All Contributors](https://img.shields.io/badge/all_contributors-16-orange.svg?style=flat-square)](#contributors)
