@@ -50,8 +50,8 @@ const processDecelerationRate = (
 
 const RNCWebViewManager = NativeModules.RNCWebViewManager as ViewManager;
 
-const RNCWebView: typeof NativeWebViewIOS =
-  requireNativeComponent('RNCWebView');
+const RNCWebView: typeof NativeWebViewIOS
+  = requireNativeComponent('RNCWebView');
 
 class WebView extends React.Component<IOSWebViewProps, State> {
   static defaultProps = {
@@ -248,9 +248,9 @@ class WebView extends React.Component<IOSWebViewProps, State> {
     _url: string,
     lockIdentifier: number,
   ) => {
-    const viewManager =
-      (this.props.nativeConfig && this.props.nativeConfig.viewManager) ||
-      RNCWebViewManager;
+    const viewManager
+      = (this.props.nativeConfig && this.props.nativeConfig.viewManager)
+      || RNCWebViewManager;
 
     viewManager.startLoadWithResult(!!shouldStart, lockIdentifier);
   };
@@ -326,9 +326,9 @@ class WebView extends React.Component<IOSWebViewProps, State> {
 
     const decelerationRate = processDecelerationRate(decelerationRateProp);
 
-    const NativeWebView =
-      (nativeConfig.component as typeof NativeWebViewIOS | undefined) ||
-      RNCWebView;
+    const NativeWebView
+      = (nativeConfig.component as typeof NativeWebViewIOS | undefined)
+      || RNCWebView;
 
     const webView = (
       <NativeWebView
