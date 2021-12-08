@@ -19,6 +19,7 @@
 
 static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
+static NSString *const IOSFunc = @"IOSFunc";
 static NSString *const MessageHandlerName = @"ReactNativeWebView";
 static NSURLCredential* clientAuthenticationCredential;
 static NSDictionary* customCertificatesForHost;
@@ -68,6 +69,7 @@ static NSDictionary* customCertificatesForHost;
 #endif // !TARGET_OS_OSX
     RCTAutoInsetsProtocol>
 
+@property (nonatomic, copy) RCTDirectEventBlock onBlobDownload;
 @property (nonatomic, copy) RCTDirectEventBlock onFileDownload;
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingStart;
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingFinish;
@@ -238,6 +240,10 @@ static NSDictionary* customCertificatesForHost;
   // Shim the HTML5 history API:
   [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                             name:HistoryShimName];
+
+  [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
+                                                            name:IOSFunc];
+
   [self resetupScripts:wkWebViewConfig];
 
 #if !TARGET_OS_OSX
@@ -458,6 +464,12 @@ static NSDictionary* customCertificatesForHost;
       NSMutableDictionary<NSString *, id> *event = [self baseEvent];
       [event addEntriesFromDictionary: @{@"navigationType": message.body}];
       _onLoadingFinish(event);
+    }
+  } else if ([message.name isEqualToString:IOSFunc]) {
+    if(_onBlobDownload){
+        NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+        [event addEntriesFromDictionary: @{@"base64String": message.body}];
+        _onBlobDownload(event);
     }
   } else if ([message.name isEqualToString:MessageHandlerName]) {
     if (_onMessage) {
@@ -975,6 +987,39 @@ static NSDictionary* customCertificatesForHost;
 
       UIImageWriteToSavedPhotosAlbum(convertedImage, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 
+      decisionHandler(WKNavigationActionPolicyCancel);
+      return;
+    } @catch (id exception) {
+      decisionHandler(WKNavigationActionPolicyCancel);
+      return;
+    }
+  }
+
+  NSString *blobHead = @"blob:";
+  if ([request.URL.absoluteString rangeOfString:blobHead].location != NSNotFound) {
+    @try {
+      NSString *blobString = request.URL.absoluteString;
+      NSURL *url = [NSURL URLWithString:blobString];
+
+        NSString *downloadBlobUrl = [NSString stringWithFormat:@"var xhr = new XMLHttpRequest();   \n"
+                "  xhr.open('GET', '%@', true);                                                     \n"
+                "  xhr.responseType = 'blob';                                                       \n"
+                "  xhr.onload = function(e) {                                                       \n"
+                "    if (this.status == 200) {                                                      \n"
+                "      var blob = this.response;                                                    \n"
+                "      var reader = new FileReader();                                               \n"
+                "      reader.readAsDataURL(blob);                                                  \n"
+                "      reader.onloadend = function() {                                              \n"
+                "        base64data = reader.result;                                                \n"
+                "        window.webkit.messageHandlers.%@.postMessage(base64data);                  \n"
+                "      }                                                                            \n"
+                "    }                                                                              \n"
+                "  }                                                                                \n"
+                "  xhr.send();                                                                      \n"
+                "true", url, IOSFunc];
+        
+        [self evaluateJS: downloadBlobUrl thenCall: nil];
+        
       decisionHandler(WKNavigationActionPolicyCancel);
       return;
     } @catch (id exception) {

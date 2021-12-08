@@ -31,6 +31,7 @@ import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
+import android.webkit.MimeTypeMap;
 import android.webkit.JavascriptInterface;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
@@ -217,6 +218,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     if (ReactBuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       WebView.setWebContentsDebuggingEnabled(true);
     }
+  
+    webView.addJavascriptInterface(new JavaScriptInterface(webView.getContext(), reactContext), "Android");
 
     webView.setDownloadListener(new DownloadListener() {
       private String DOWNLOAD_SUB_DIR = "/Classting";
@@ -284,6 +287,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
         if (url.contains("data:")) {
           this.downloadBase64(url, contentDisposition, mimetype);
+        } else if (url.contains("blob:")) {
+          webView.loadUrl(JavaScriptInterface.getBase64StringFromBlobUrl(url));
         } else {
           DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
@@ -322,6 +327,97 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     });
 
     return webView;
+  }
+
+  protected static class JavaScriptInterface {
+    private Context context;
+    private ThemedReactContext reactContext;
+
+    public JavaScriptInterface(Context context, ThemedReactContext reactContext) {
+      this.context = context;
+      this.reactContext = reactContext;
+    }
+
+    @JavascriptInterface
+    public void getBase64FromBlobData(String base64Data) {
+      downloadBase64(base64Data);
+    }
+
+    public static String getBase64StringFromBlobUrl(String url) {
+      return "javascript: var xhr = new XMLHttpRequest();" +
+        "xhr.open('GET', '"+ url +"', true);" +
+        "xhr.responseType = 'blob';" +
+        "xhr.onload = function(e) {" +
+        "    if (this.status == 200) {" +
+        "        var blob = this.response;" +
+        "        var reader = new FileReader();" +
+        "        reader.readAsDataURL(blob);" +
+        "        reader.onloadend = function() {" +
+        "            base64data = reader.result;" +
+        "            Android.getBase64FromBlobData(base64data);" +
+        "        }" +
+        "    }" +
+        "};" +
+        "xhr.send();";
+    }
+
+    private void downloadBase64(String url) {
+      Activity mActivity = reactContext.getCurrentActivity();
+
+      if (ContextCompat.checkSelfPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(mActivity, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, 100);
+      } else {
+        try {
+          String base64EncodedString = url.substring(url.indexOf(",") + 1);
+          byte[] fileBytes = Base64.decode(base64EncodedString, Base64.DEFAULT);
+
+          String mimeType = url.substring(url.indexOf(":") + 1, url.indexOf(";"));
+          String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+          String fileName = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + "." + ext;
+
+          File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS + "/Classting");
+
+          File file = new File(path, fileName);
+
+          if (!path.exists()) {
+            path.mkdirs();
+          }
+
+          if (!file.exists()) {
+            file.createNewFile();
+          }
+
+          FileOutputStream os = new FileOutputStream(file);
+          os.write(fileBytes);
+          os.close();
+
+          String pathToString = file.getAbsolutePath();
+          MediaScannerConnection.scanFile(reactContext, new String[] { pathToString }, null, new MediaScannerConnection.OnScanCompletedListener() {
+            @Override
+            public void onScanCompleted(String path, Uri uri) {
+              mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                  if (uri != null) {
+                    String successMsg = mActivity.getString(R.string.message_toast_download_success);
+                    Toast.makeText(reactContext, successMsg, Toast.LENGTH_LONG).show();
+                  }
+                }
+              });
+            }
+          });
+        } catch (Exception e) {
+          Log.w("download", "Error writing", e);
+          mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              String failureMsg = mActivity.getString(R.string.message_toast_download_failure);
+              Toast.makeText(reactContext, failureMsg, Toast.LENGTH_LONG).show();
+            }
+          });
+        }
+      }
+    }
   }
 
   @ReactProp(name = "javaScriptEnabled")
