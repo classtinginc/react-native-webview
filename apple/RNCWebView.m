@@ -17,6 +17,8 @@
 
 #import "objc/runtime.h"
 
+#import <Photos/Photos.h> // import for save gifs
+
 static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const MessageHandlerName = @"ReactNativeWebView";
@@ -971,10 +973,55 @@ static NSDictionary* customCertificatesForHost;
 
       NSURL *url = [NSURL URLWithString:base64String];
       NSData *data = [NSData dataWithContentsOfURL:url];
-      UIImage *convertedImage = [UIImage imageWithData:data scale:1.0];
 
-      UIImageWriteToSavedPhotosAlbum(convertedImage, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+      if ([mimeType rangeOfString:@"gif"].location == NSNotFound) {
+        UIImage *convertedImage = [UIImage imageWithData:data scale:1.0];
+        UIImageWriteToSavedPhotosAlbum(convertedImage, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+      } else {
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            PHAssetCreationRequest *assetRequest;
+            assetRequest = [PHAssetCreationRequest creationRequestForAsset];
+            PHAssetResourceCreationOptions *options = [[PHAssetResourceCreationOptions alloc] init];
+            [assetRequest addResourceWithType:PHAssetResourceTypePhoto data:data options:options];
+        } completionHandler:^(BOOL success, NSError * _Nullable error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"AlertButtonConfirm", "") style:UIAlertActionStyleDefault
+                      handler:^(UIAlertAction * action) {}];
 
+                  UIViewController *viewController = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+                  if (viewController.presentedViewController && !viewController.presentedViewController.isBeingDismissed) {
+                    viewController = viewController.presentedViewController;
+                  }
+
+                  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@""
+                                                  message:@""
+                                                  preferredStyle:UIAlertControllerStyleAlert];
+
+
+                  [alert addAction:defaultAction];
+
+                  NSLayoutConstraint *constraint = [NSLayoutConstraint
+                      constraintWithItem:alert.view
+                      attribute:NSLayoutAttributeHeight
+                      relatedBy:NSLayoutRelationLessThanOrEqual
+                      toItem:nil
+                      attribute:NSLayoutAttributeNotAnAttribute
+                      multiplier:1
+                      constant:viewController.view.frame.size.height*2.0f];
+
+                  [alert.view addConstraint:constraint];
+
+                  if (error) {
+                    alert.message = NSLocalizedString(@"AlertMessageDownloadFailure", "");
+                  } else {
+                    alert.message = NSLocalizedString(@"AlertMessageDownloadSuccess", "");
+                  }
+
+                  [viewController presentViewController:alert animated:YES completion:^{}];
+            });
+        }];
+      }
+        
       decisionHandler(WKNavigationActionPolicyCancel);
       return;
     } @catch (id exception) {
