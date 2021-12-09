@@ -971,6 +971,9 @@ static NSDictionary* customCertificatesForHost;
   NSURLRequest *request = navigationAction.request;
   BOOL isTopFrame = [request.URL isEqual:request.mainDocumentURL];
 
+  NSArray *allowFileExtensions = @[@"doc",@"hwp",@"xls",@"ppt",@"docx",@"xlsx",@"pptx",@"pdf",@"zip",@"jpeg",@"jpg",@"png",@"gif",@"mp3",@"mp4",@"avi",@"mov"];
+  NSString *fileExtension = request.URL.absoluteString.pathExtension;
+  BOOL isDownload = [allowFileExtensions containsObject:[fileExtension lowercaseString]];
 
   NSString *base64Head = @"data:";
   if ([request.URL.absoluteString rangeOfString:base64Head].location != NSNotFound) {
@@ -1093,7 +1096,7 @@ static NSDictionary* customCertificatesForHost;
 
   if (_onLoadingStart) {
     // We have this check to filter out iframe requests and whatnot
-    if (isTopFrame) {
+    if (isTopFrame && !isDownload) {
       NSMutableDictionary<NSString *, id> *event = [self baseEvent];
       [event addEntriesFromDictionary: @{
         @"url": (request.URL).absoluteString,
