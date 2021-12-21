@@ -309,10 +309,13 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
     }
 
     Intent fileSelectionIntent = getFileChooserIntent(acceptTypes, allowMultiple);
-    Intent imagePickerIntent = getImagePickerIntent(acceptTypes, allowMultiple);
-
     Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
-    if (imagePickerIntent == null) {
+
+    // Using custom image picker when Accept-Type is `*/images` only
+    if (isSingleImageType(acceptTypes)) {
+      Intent imagePickerIntent = getImagePickerIntent(allowMultiple);
+      activity.startActivityForResult(imagePickerIntent, PICKER);
+    } else {
       chooserIntent.putExtra(Intent.EXTRA_INTENT, fileSelectionIntent);
       chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toArray(new Parcelable[]{}));
 
@@ -321,8 +324,6 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
       } else {
         Log.w("RNCWebViewModule", "there is no Activity to handle this Intent");
       }
-    } else {
-      activity.startActivityForResult(imagePickerIntent, PICKER);
     }
 
     return true;
@@ -371,6 +372,11 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
     }
 
     return needed;
+  }
+
+  private Boolean isSingleImageType(String[] acceptTypes) {
+    String acceptType = acceptTypes.length == 1 ? acceptTypes[0] : "";
+    return !acceptType.equals("") && acceptsImages(acceptType);
   }
 
   private Intent getPhotoIntent() {
@@ -428,17 +434,13 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
     return intent;
   }
 
-  private Intent getImagePickerIntent(String[] acceptTypes, boolean allowMultiple) {
-    if (acceptsImages(acceptTypes)) {
-      Intent intent = new Intent(getCurrentActivity(), LocalFoldersActivity.class);
-      intent.putExtra(Extra.STYLE, IMAGE_PICKER_STYLE);
-      intent.putExtra(Extra.MAX_SIZE, IMAGE_PICKER_MAX_SIZE);
-      intent.putExtra(Extra.AVAILABLE_SIZE, IMAGE_PICKER_AVAILABLE_SIZE);
-      intent.putExtra(Extra.ALLOW_MULTIPLE, allowMultiple);
-      return intent;
-    } else {
-      return null;
-    }
+  private Intent getImagePickerIntent(boolean allowMultiple) {
+    Intent intent = new Intent(getCurrentActivity(), LocalFoldersActivity.class);
+    intent.putExtra(Extra.STYLE, IMAGE_PICKER_STYLE);
+    intent.putExtra(Extra.MAX_SIZE, IMAGE_PICKER_MAX_SIZE);
+    intent.putExtra(Extra.AVAILABLE_SIZE, IMAGE_PICKER_AVAILABLE_SIZE);
+    intent.putExtra(Extra.ALLOW_MULTIPLE, allowMultiple);
+    return intent;
   }
 
   private Boolean acceptsImages(String types) {
