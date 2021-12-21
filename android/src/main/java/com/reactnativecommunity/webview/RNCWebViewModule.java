@@ -61,7 +61,7 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
 
   // Image picker constants
   private int IMAGE_PICKER_STYLE = 0;
-  private int IMAGE_PICKER_MAX_SIZE = 10;
+  private int IMAGE_PICKER_MAX_SIZE = 50;
   private int IMAGE_PICKER_AVAILABLE_SIZE = 50;
 
   protected static class ShouldOverrideUrlLoadingLock {
