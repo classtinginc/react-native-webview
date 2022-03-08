@@ -1159,6 +1159,7 @@ static NSDictionary* customCertificatesForHost;
           NSMutableDictionary<NSString *, id> *downloadEvent = [self baseEvent];
           [downloadEvent addEntriesFromDictionary: @{
             @"downloadUrl": (response.URL).absoluteString,
+            @"disposition": disposition
           }];
           _onFileDownload(downloadEvent);
         }

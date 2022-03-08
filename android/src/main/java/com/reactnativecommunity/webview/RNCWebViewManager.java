@@ -95,6 +95,7 @@ import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -103,6 +104,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Manages instances of {@link WebView}
@@ -218,7 +221,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     if (ReactBuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       WebView.setWebContentsDebuggingEnabled(true);
     }
-  
+
     webView.addJavascriptInterface(new JavaScriptInterface(webView.getContext(), reactContext), "Android");
 
     webView.setDownloadListener(new DownloadListener() {
@@ -280,6 +283,26 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         }
       }
 
+      // content-disposition 파싱 정규표현식
+      private Pattern CONTENT_DISPOSITION_PATTERN =
+        Pattern.compile("(.*)filename=\"(.*)\"(.*)",
+          Pattern.CASE_INSENSITIVE);
+
+      // content-disposition 파싱 함수
+      private String parseContentDisposition(String contentDisposition) {
+        try {
+          Matcher m = CONTENT_DISPOSITION_PATTERN.matcher(contentDisposition);
+          if (m.find()) {
+            String fileName = m.group(2);
+            fileName = URLDecoder.decode(fileName, "UTF-8");
+            return fileName;
+          }
+        } catch (IllegalStateException | UnsupportedEncodingException ex) {
+          // This function is defined as returning null when it can't parse the header
+        }
+        return null;
+      }
+
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
         webView.setIgnoreErrFailedForThisURL(url);
 
@@ -290,9 +313,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         } else if (url.contains("blob:")) {
           webView.loadUrl(JavaScriptInterface.getBase64StringFromBlobUrl(url));
         } else {
+          String fileName = null;
           DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+          
+          fileName = parseContentDisposition(contentDisposition);
+          
+          if (fileName == null) {
+            fileName = URLUtil.guessFileName(url, contentDisposition, null);
+          }
 
-          String fileName = URLUtil.guessFileName(url, contentDisposition, null);
           String downloadMessage = "Downloading " + fileName;
 
           //Attempt to add cookie, if it exists
