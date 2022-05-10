@@ -1150,6 +1150,11 @@ static NSDictionary* customCertificatesForHost;
       NSString *disposition = nil;
       if (@available(iOS 13, *)) {
         disposition = [response valueForHTTPHeaderField:@"Content-Disposition"];
+      } else {
+        if ([response respondsToSelector:@selector(allHeaderFields)]) {
+          NSDictionary *headerFields = [response allHeaderFields];
+          disposition = headerFields[@"Content-Disposition"];
+        }
       }
       BOOL isAttachment = disposition != nil && [disposition hasPrefix:@"attachment"];
       if (isAttachment || !navigationResponse.canShowMIMEType) {
