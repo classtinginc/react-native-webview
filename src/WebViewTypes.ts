@@ -20,7 +20,8 @@ type WebViewCommands =
   | 'postMessage'
   | 'injectJavaScript'
   | 'loadUrl'
-  | 'requestFocus';
+  | 'requestFocus'
+  | 'getCookies';
 
 type AndroidWebViewCommands = 'clearHistory' | 'clearCache' | 'clearFormData';
 
@@ -120,6 +121,7 @@ export interface BlobDownload {
 
 export interface FileDownload {
   downloadUrl: string;
+  disposition?: string;
 }
 
 export type DecelerationRateConstant = 'normal' | 'fast';
@@ -234,8 +236,24 @@ export interface WebViewSourceHtml {
 
 export type WebViewSource = WebViewSourceUri | WebViewSourceHtml;
 
+export interface WebViewCookie {
+  name: string;
+  value: string;
+  path?: string;
+  domain?: string;
+  version?: string;
+  expires?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+}
+
+export interface WebViewCookies {
+  [key: string]: WebViewCookie;
+}
+
 export interface ViewManager {
   startLoadWithResult: Function;
+  getCookies: (reactTagId: number, callback: (cookies: WebViewCookies | null) => void) => void;
 }
 
 export interface WebViewNativeConfig {

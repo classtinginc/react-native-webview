@@ -1,6 +1,6 @@
 import { Component } from 'react';
 // eslint-disable-next-line
-import { IOSWebViewProps, AndroidWebViewProps } from './lib/WebViewTypes';
+import { IOSWebViewProps, AndroidWebViewProps, WebViewCookies } from './lib/WebViewTypes';
 
 export { FileDownload, WebViewMessageEvent, WebViewNavigation } from "./lib/WebViewTypes";
 
@@ -21,6 +21,13 @@ declare class WebView<P = {}> extends Component<WebViewProps & P> {
      * Reloads the current page.
      */
     reload: () => void;
+
+    /**
+     * Get cookies from httpCookieStore(WKHTTPCookieStore).
+     * 
+     * - iOS only (android result is always null)
+     */
+    getCookies: (callback: (cookies: WebViewCookies | null) => void) => void;
 
     /**
      * Stop loading the current page.
