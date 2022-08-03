@@ -7,6 +7,7 @@
 
 #import <React/RCTView.h>
 #import <React/RCTDefines.h>
+#import <React/RCTBridgeModule.h>
 #import <WebKit/WebKit.h>
 
 @class RNCWebView;
@@ -79,6 +80,7 @@
 - (void)goForward;
 - (void)goBack;
 - (void)reload;
+- (void)getCookies:(RCTResponseSenderBlock)callback;
 - (void)stopLoading;
 #if !TARGET_OS_OSX
 - (void)addPullToRefreshControl;
