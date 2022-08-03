@@ -195,6 +195,20 @@ RCT_EXPORT_METHOD(reload:(nonnull NSNumber *)reactTag)
   }];
 }
 
+RCT_EXPORT_METHOD(getCookies:(nonnull NSNumber *)reactTag callback:(RCTResponseSenderBlock)callback)
+{
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RNCWebView *> *viewRegistry) {
+    RNCWebView *view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RNCWebView class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting RNCWebView, got: %@", view);
+    } else {
+      dispatch_async(dispatch_get_main_queue(), ^(){
+        [view getCookies:callback];
+      });
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(stopLoading:(nonnull NSNumber *)reactTag)
 {
   [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RNCWebView *> *viewRegistry) {

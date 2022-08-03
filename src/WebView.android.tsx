@@ -31,6 +31,7 @@ import {
   NativeWebViewAndroid,
   State,
   RNCWebViewUIManagerAndroid,
+  WebViewCookies,
 } from './WebViewTypes';
 
 import styles from './WebView.styles';
@@ -116,6 +117,15 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       undefined
     );
   };
+
+  /**
+   * Get cookies from httpCookieStore(WKHTTPCookieStore).
+   * 
+   * - iOS only (android result is always null)
+   */
+  getCookies = (callback: (cookies: WebViewCookies | null) => void) => {
+    callback(null);
+  }
 
   stopLoading = () => {
     UIManager.dispatchViewManagerCommand(

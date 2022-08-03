@@ -29,6 +29,7 @@ import {
   ViewManager,
   State,
   RNCWebViewUIManagerIOS,
+  WebViewCookies,
 } from './WebViewTypes';
 
 import styles from './WebView.styles';
@@ -108,6 +109,20 @@ class WebView extends React.Component<IOSWebViewProps, State> {
       this.getCommands().reload,
       undefined,
     );
+  };
+
+  /**
+   * Get cookies from httpCookieStore(WKHTTPCookieStore).
+   * 
+   * - iOS only (android result is always null)
+   */
+  getCookies = (callback: (cookies: WebViewCookies | null) => void) => {
+    try {
+      const reactTagId = this.getWebViewHandle();
+      RNCWebViewManager.getCookies(reactTagId, callback);
+    } catch (_) {
+      callback(null);
+    }
   };
 
   /**
