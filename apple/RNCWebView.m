@@ -24,6 +24,7 @@ static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const IOSFunc = @"IOSFunc";
 static NSString *const MessageHandlerName = @"ReactNativeWebView";
+static NSString *const AdpopcornSSP = @"apssp";
 static NSURLCredential* clientAuthenticationCredential;
 static NSDictionary* customCertificatesForHost;
 static inline BOOL isEmpty(id value)
@@ -816,6 +817,24 @@ static inline BOOL isEmpty(id value)
 
 #pragma mark - WKNavigationDelegate methods
 
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
+    NSString *requestString = navigationAction.request.URL.absoluteString;
+
+    if(navigationAction.navigationType == UIWebViewNavigationTypeLinkClicked)
+    {
+        decisionHandler(WKNavigationActionPolicyCancel);
+        NSURL *requestURL = [NSURL URLWithString:requestString];
+        if(@available(iOS 10, *))
+        {
+            [[UIApplication sharedApplication] openURL:requestURL options:@{} completionHandler:^(BOOL success) {
+            }];
+        }
+        return;
+    }
+    decisionHandler(WKNavigationActionPolicyAllow);
+}
+
 /**
  * alert
  */
@@ -1539,6 +1558,8 @@ static inline BOOL isEmpty(id value)
     if (self.postMessageScript){
       [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                                        name:MessageHandlerName];
+      [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
+                                                                         name:AdpopcornSSP];
       [wkWebViewConfig.userContentController addUserScript:self.postMessageScript];
     }
     if (self.atEndScript) {
