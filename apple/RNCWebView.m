@@ -24,6 +24,7 @@ static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const IOSFunc = @"IOSFunc";
 static NSString *const MessageHandlerName = @"ReactNativeWebView";
+static NSString *const AdpopcornSSP = @"apssp";
 static NSURLCredential* clientAuthenticationCredential;
 static NSDictionary* customCertificatesForHost;
 static inline BOOL isEmpty(id value)
@@ -983,6 +984,21 @@ static inline BOOL isEmpty(id value)
   BOOL isDownload = [allowFileExtensions containsObject:[fileExtension lowercaseString]];
 
   NSString *base64Head = @"data:";
+    
+  NSString *requestString = navigationAction.request.URL.absoluteString;
+
+  if(navigationType == UIWebViewNavigationTypeLinkClicked)
+  {
+      decisionHandler(WKNavigationActionPolicyCancel);
+      NSURL *requestURL = [NSURL URLWithString:requestString];
+      if(@available(iOS 10, *))
+      {
+          [[UIApplication sharedApplication] openURL:requestURL options:@{} completionHandler:^(BOOL success) {
+          }];
+      }
+      return;
+  }
+    
   if ([request.URL.absoluteString rangeOfString:base64Head].location != NSNotFound) {
     @try {
       NSString *base64String = request.URL.absoluteString;
@@ -1539,6 +1555,8 @@ static inline BOOL isEmpty(id value)
     if (self.postMessageScript){
       [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                                        name:MessageHandlerName];
+      [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
+                                                                         name:AdpopcornSSP];
       [wkWebViewConfig.userContentController addUserScript:self.postMessageScript];
     }
     if (self.atEndScript) {
