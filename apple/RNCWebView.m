@@ -20,6 +20,8 @@
 
 #import <Photos/Photos.h> // import for save gifs
 
+#import "AdPopcornSSPWKScriptMessageHandler.h"
+
 static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const IOSFunc = @"IOSFunc";
@@ -254,8 +256,8 @@ static inline BOOL isEmpty(id value)
   [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                             name:IOSFunc];
     
-  [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
-                                                            name:AdpopcornSSP];
+  AdPopcornSSPWKScriptMessageHandler *scriptMessageHandler = [[AdPopcornSSPWKScriptMessageHandler alloc] initWithDelegate:nil];
+  [wkWebViewConfig.userContentController addScriptMessageHandler:scriptMessageHandler name:AdpopcornSSP];
   
   [self resetupScripts:wkWebViewConfig];
 
