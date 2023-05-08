@@ -77,6 +77,7 @@ import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.ContentSizeChangeEvent;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.igaworks.ssp.part.hybrid.AdPopcornSSPJsBridge;
 import com.reactnativecommunity.webview.RNCWebViewModule.ShouldOverrideUrlLoadingLock.ShouldOverrideCallbackState;
 import com.reactnativecommunity.webview.events.TopLoadingErrorEvent;
 import com.reactnativecommunity.webview.events.TopHttpErrorEvent;
@@ -223,6 +224,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     }
 
     webView.addJavascriptInterface(new JavaScriptInterface(webView.getContext(), reactContext), "Android");
+    webView.addJavascriptInterface(new AdPopcornSSPJsBridge(webView.getContext(), webView), AdPopcornSSPJsBridge.INTERFACE_NAME);
 
     webView.setDownloadListener(new DownloadListener() {
       private String DOWNLOAD_SUB_DIR = "/Classting";
