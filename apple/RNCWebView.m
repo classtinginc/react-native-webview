@@ -20,6 +20,8 @@
 
 #import <Photos/Photos.h> // import for save gifs
 
+#import "AdPopcornSSPWKScriptMessageHandler.h"
+
 static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const IOSFunc = @"IOSFunc";
@@ -246,6 +248,8 @@ static inline BOOL isEmpty(id value)
     wkWebViewConfig.defaultWebpagePreferences = pagePrefs;
   }
 #endif
+    
+  AdPopcornSSPWKScriptMessageHandler *scriptMessageHandler = [[AdPopcornSSPWKScriptMessageHandler alloc] initWithDelegate:nil];
 
   // Shim the HTML5 history API:
   [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
@@ -254,7 +258,7 @@ static inline BOOL isEmpty(id value)
   [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                             name:IOSFunc];
     
-  [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
+  [wkWebViewConfig.userContentController addScriptMessageHandler:scriptMessageHandler
                                                             name:AdpopcornSSP];
   
   [self resetupScripts:wkWebViewConfig];
