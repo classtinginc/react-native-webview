@@ -323,7 +323,7 @@ static inline BOOL isEmpty(id value)
       _webView.scrollView.contentInsetAdjustmentBehavior = _savedContentInsetAdjustmentBehavior;
     }
 #endif
-
+    _scriptMessageHandler.webView = _webView;
     [self addSubview:_webView];
     [self setHideKeyboardAccessoryView: _savedHideKeyboardAccessoryView];
     [self setKeyboardDisplayRequiresUserAction: _savedKeyboardDisplayRequiresUserAction];
