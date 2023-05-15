@@ -20,6 +20,8 @@
 
 #import <Photos/Photos.h> // import for save gifs
 
+#import "AdPopcornSSPWKScriptMessageHandler.h"
+
 static NSTimer *keyboardTimer;
 static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
 static NSString *const IOSFunc = @"IOSFunc";
@@ -78,6 +80,8 @@ static inline BOOL isEmpty(id value)
     UIScrollViewDelegate,
 #endif // !TARGET_OS_OSX
     RCTAutoInsetsProtocol>
+
+@property (nonatomic, copy) AdPopcornSSPWKScriptMessageHandler *scriptMessageHandler;
 
 @property (nonatomic, copy) RCTDirectEventBlock onBlobDownload;
 @property (nonatomic, copy) RCTDirectEventBlock onFileDownload;
@@ -238,6 +242,10 @@ static inline BOOL isEmpty(id value)
     wkWebViewConfig.processPool = [[RNCWKProcessPoolManager sharedManager] sharedProcessPool];
   }
   wkWebViewConfig.userContentController = [WKUserContentController new];
+    
+  _scriptMessageHandler = [[AdPopcornSSPWKScriptMessageHandler alloc] initWithDelegate:nil];
+  [wkWebViewConfig.userContentController addScriptMessageHandler:_scriptMessageHandler
+                                                              name:AdpopcornSSP];
 
 #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000 /* iOS 13 */
   if (@available(iOS 13.0, *)) {
@@ -246,16 +254,13 @@ static inline BOOL isEmpty(id value)
     wkWebViewConfig.defaultWebpagePreferences = pagePrefs;
   }
 #endif
-
+    
   // Shim the HTML5 history API:
   [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                             name:HistoryShimName];
 
   [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
                                                             name:IOSFunc];
-    
-  [wkWebViewConfig.userContentController addScriptMessageHandler:[[RNCWeakScriptMessageDelegate alloc] initWithDelegate:self]
-                                                            name:AdpopcornSSP];
   
   [self resetupScripts:wkWebViewConfig];
 
@@ -318,7 +323,7 @@ static inline BOOL isEmpty(id value)
       _webView.scrollView.contentInsetAdjustmentBehavior = _savedContentInsetAdjustmentBehavior;
     }
 #endif
-
+    _scriptMessageHandler.webView = _webView;
     [self addSubview:_webView];
     [self setHideKeyboardAccessoryView: _savedHideKeyboardAccessoryView];
     [self setKeyboardDisplayRequiresUserAction: _savedKeyboardDisplayRequiresUserAction];
