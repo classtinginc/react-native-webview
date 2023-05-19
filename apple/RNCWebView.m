@@ -995,7 +995,8 @@ static inline BOOL isEmpty(id value)
     
   NSString *requestString = navigationAction.request.URL.absoluteString;
 
-  if(navigationType == UIWebViewNavigationTypeLinkClicked)
+  // 애드팝콘 웹뷰 광고를 외부브라우저로 열기위함. 다만 파일 다운로드인 경우 해당 로직을 타지 않도록 함
+  if(!isDownload && navigationType == UIWebViewNavigationTypeLinkClicked)
   {
       decisionHandler(WKNavigationActionPolicyCancel);
       NSURL *requestURL = [NSURL URLWithString:requestString];
