@@ -992,22 +992,6 @@ static inline BOOL isEmpty(id value)
   BOOL isDownload = [allowFileExtensions containsObject:[fileExtension lowercaseString]];
 
   NSString *base64Head = @"data:";
-    
-  NSString *requestString = navigationAction.request.URL.absoluteString;
-
-  // 애드팝콘 웹뷰 광고를 외부브라우저로 열기위함. 다만 파일 다운로드인 경우 해당 로직을 타지 않도록 함
-  if(!isDownload && navigationType == UIWebViewNavigationTypeLinkClicked)
-  {
-      decisionHandler(WKNavigationActionPolicyCancel);
-      NSURL *requestURL = [NSURL URLWithString:requestString];
-      if(@available(iOS 10, *))
-      {
-          [[UIApplication sharedApplication] openURL:requestURL options:@{} completionHandler:^(BOOL success) {
-          }];
-      }
-      return;
-  }
-    
   if ([request.URL.absoluteString rangeOfString:base64Head].location != NSNotFound) {
     @try {
       NSString *base64String = request.URL.absoluteString;
