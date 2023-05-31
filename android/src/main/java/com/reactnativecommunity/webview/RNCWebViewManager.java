@@ -324,6 +324,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
             fileName = URLUtil.guessFileName(url, contentDisposition, null);
           }
 
+          if (fileName.equals("")) {
+            return;
+          }
+
           String downloadMessage = "Downloading " + fileName;
 
           //Attempt to add cookie, if it exists
