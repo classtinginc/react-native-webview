@@ -244,7 +244,7 @@ class RNCWebViewManagerImpl {
                 }
             webChromeClient.setAllowsProtectedMedia(mAllowsProtectedMedia);
             webView.webChromeClient = webChromeClient
-        } else {
+        } else if (webView.webChromeClient is RNCWebChromeClient) {
             var webChromeClient = webView.webChromeClient as RNCWebChromeClient?
             webChromeClient?.onHideCustomView()
             webChromeClient = object : RNCWebChromeClient(webView) {
