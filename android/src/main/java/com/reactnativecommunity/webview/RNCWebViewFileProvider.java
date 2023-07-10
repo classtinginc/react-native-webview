@@ -1,7 +1,6 @@
 package com.reactnativecommunity.webview;
 
 import androidx.core.content.FileProvider;
-import com.reactnativecommunity.webview.R;
 
 /**
  * Providing a custom {@code FileProvider} prevents manifest {@code <provider>} name collisions.
