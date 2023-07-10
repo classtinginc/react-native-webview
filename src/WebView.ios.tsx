@@ -20,6 +20,7 @@ import {
   IOSWebViewProps,
   DecelerationRateConstant,
   WebViewSourceUri,
+  WebViewCookies,
 } from './WebViewTypes';
 
 import styles from './WebView.styles';
@@ -48,6 +49,7 @@ const useWarnIfChanges = <T extends unknown>(value: T, name: string) => {
 }
 
 const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
+  fraudulentWebsiteWarningEnabled = true,
   javaScriptEnabled = true,
   cacheEnabled = true,
   originWhitelist = defaultOriginWhitelist,
@@ -122,6 +124,11 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
       }
     },
     stopLoading: () => webViewRef.current && Commands.stopLoading(webViewRef.current),
+    getCookies: (callback: (cookies: WebViewCookies | null) => void) => {
+      if (webViewRef.current) {
+        Commands.getCookies(webViewRef.current, callback);
+      }
+    },
     postMessage: (data: string) => webViewRef.current && Commands.postMessage(webViewRef.current, data),
     injectJavaScript: (data: string) => webViewRef.current && Commands.injectJavaScript(webViewRef.current, data),
     requestFocus: () => webViewRef.current && Commands.requestFocus(webViewRef.current),
@@ -175,6 +182,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
     <NativeWebView
       key="webViewKey"
       {...otherProps}
+      fraudulentWebsiteWarningEnabled={fraudulentWebsiteWarningEnabled}
       javaScriptEnabled={javaScriptEnabled}
       cacheEnabled={cacheEnabled}
       useSharedProcessPool={useSharedProcessPool}

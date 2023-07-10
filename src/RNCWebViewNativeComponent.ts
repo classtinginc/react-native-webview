@@ -2,7 +2,7 @@ import type { HostComponent, ViewProps } from 'react-native';
 import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
 import {DirectEventHandler,Double, Int32, WithDefault} from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
-import type { BlobDownload, FileDownload } from './WebViewTypes';
+import type { BlobDownload, FileDownload, WebViewCookies } from './WebViewTypes';
 
 export type WebViewNativeEvent = Readonly<{
   url: string;
@@ -207,6 +207,7 @@ export interface NativeProps extends ViewProps {
   menuItems?: ReadonlyArray<Readonly<{label: string, key: string}>>;
   // Workaround to watch if listener if defined
   hasOnFileDownload?: boolean;
+  fraudulentWebsiteWarningEnabled?: boolean;
   // !iOS only
 
   allowFileAccessFromFileURLs?: boolean;
@@ -224,6 +225,7 @@ export interface NativeProps extends ViewProps {
   injectedJavaScriptBeforeContentLoadedForMainFrameOnly?: boolean;
   javaScriptCanOpenWindowsAutomatically?: boolean;
   javaScriptEnabled?: boolean;
+  webviewDebuggingEnabled?: boolean;
   mediaPlaybackRequiresUserAction?: boolean;
   messagingEnabled: boolean;
   onLoadingError: DirectEventHandler<WebViewErrorEvent>;
@@ -256,6 +258,8 @@ export interface NativeCommands {
   injectJavaScript: (viewRef: React.ElementRef<HostComponent<NativeProps>>, javascript: string) => void;
   requestFocus: (viewRef: React.ElementRef<HostComponent<NativeProps>>) => void;
   postMessage: (viewRef: React.ElementRef<HostComponent<NativeProps>>, data: string) => void;
+  // iOS Only
+  getCookies: (viewRef: React.ElementRef<HostComponent<NativeProps>>, callback: (cookies: WebViewCookies | null) => void) => void;
   // Android Only
   loadUrl: (viewRef: React.ElementRef<HostComponent<NativeProps>>, url: string) => void;
   clearFormData: (viewRef: React.ElementRef<HostComponent<NativeProps>>) => void;
@@ -265,7 +269,7 @@ export interface NativeCommands {
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ['goBack', 'goForward', 'reload', 'stopLoading', 'injectJavaScript', 'requestFocus', 'postMessage', 'loadUrl', 'clearFormData', 'clearCache', 'clearHistory'],
+  supportedCommands: ['goBack', 'goForward', 'reload', 'stopLoading', 'getCookies', 'injectJavaScript', 'requestFocus', 'postMessage', 'loadUrl', 'clearFormData', 'clearCache', 'clearHistory'],
 });
 
 export default codegenNativeComponent<NativeProps>(
