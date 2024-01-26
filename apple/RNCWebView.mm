@@ -310,6 +310,9 @@ auto stringToOnLoadingFinishNavigationTypeEnum(std::string value) {
 #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 140500 /* iOS 14.5 */
     REMAP_WEBVIEW_PROP(textInteractionEnabled)
 #endif
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 160400 /* min iOS 16.3 */
+@property (nonatomic, assign) BOOL inspectEnabled;
+#endif
     
     if (oldViewProps.dataDetectorTypes != newViewProps.dataDetectorTypes) {
         WKDataDetectorTypes dataDetectorTypes = WKDataDetectorTypeNone;

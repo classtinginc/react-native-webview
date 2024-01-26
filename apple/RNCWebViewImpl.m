@@ -611,6 +611,16 @@ RCTAutoInsetsProtocol>
   });
 #pragma clang diagnostic pop
 }
+      
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 160400 /* min iOS 16.3 */
+- (void)setInspectEnabled:(BOOL)inspectEnabled {
+    _inspectEnabled = inspectEnabled;
+    
+    if(_webView != nil){
+        _webView.inspectable = inspectEnabled;
+    }
+}
+#endif
 
 -(void)keyboardWillHide
 {

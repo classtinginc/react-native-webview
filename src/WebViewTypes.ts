@@ -712,6 +712,13 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * @platform ios
    */
   fraudulentWebsiteWarningEnabled?: boolean;
+
+  /**
+   * 클래스팅 커스텀 prop
+   * 웹뷰 인스펙터를 활성화하기 위한 속성 (>= iOS 16.4) 
+   * @platform ios
+   */
+    inspectEnabled?: boolean;
 }
 
 export interface MacOSWebViewProps extends WebViewSharedProps {

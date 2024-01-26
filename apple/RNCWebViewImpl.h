@@ -132,6 +132,10 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *)request
 @property (nonatomic, assign) RNCWebViewPermissionGrantType mediaCapturePermissionGrantType;
 #endif
 
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 160400 /* min iOS 16.3 */
+@property (nonatomic, assign) BOOL inspectEnabled;
+#endif
+
 #if !TARGET_OS_OSX
 - (void)setContentInsetAdjustmentBehavior:(UIScrollViewContentInsetAdjustmentBehavior)behavior;
 #endif  // !TARGET_OS_OSX

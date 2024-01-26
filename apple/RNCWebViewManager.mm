@@ -213,6 +213,11 @@ QUICK_RCT_EXPORT_COMMAND_METHOD_PARAMS(injectJavaScript, script:(NSString *)scri
 
 #pragma mark - Classting Custom
 QUICK_RCT_EXPORT_COMMAND_METHOD_PARAMS(getCookies, callback:(RCTResponseSenderBlock)callback, callback)
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 160400 /* min iOS 16.3 */
+RCT_EXPORT_VIEW_PROPERTY(inspectEnabled, BOOL)
+#endif
+
 // classting custom end
 
 RCT_EXPORT_METHOD(shouldStartLoadWithLockIdentifier:(BOOL)shouldStart
