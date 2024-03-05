@@ -1,7 +1,6 @@
 /// <reference types="react" />
 import type { HostComponent, ViewProps } from 'react-native';
 import { DirectEventHandler, Double, Int32, WithDefault } from 'react-native/Libraries/Types/CodegenTypes';
-import type { BlobDownload, FileDownload } from './WebViewTypes';
 export declare type WebViewNativeEvent = Readonly<{
     url: string;
     loading: boolean;
@@ -108,8 +107,13 @@ declare type ScrollEvent = Readonly<{
 declare type WebViewRenderProcessGoneEvent = Readonly<{
     didCrash: boolean;
 }>;
-declare type WebViewBlobDownloadEvent = Readonly<BlobDownload>;
-declare type WebViewFileDownloadEvent = Readonly<FileDownload>;
+declare type WebViewBlobDownloadEvent = Readonly<{
+    base64String: string;
+}>;
+declare type WebViewFileDownloadEvent = Readonly<{
+    downloadUrl: string;
+    disposition?: string;
+}>;
 export interface NativeProps extends ViewProps {
     allowFileAccess?: boolean;
     allowsProtectedMedia?: boolean;
