@@ -1,7 +1,7 @@
 /// <reference types="react" />
 import type { HostComponent, ViewProps } from 'react-native';
 import { DirectEventHandler, Double, Int32, WithDefault } from 'react-native/Libraries/Types/CodegenTypes';
-export declare type WebViewNativeEvent = Readonly<{
+export type WebViewNativeEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -9,12 +9,12 @@ export declare type WebViewNativeEvent = Readonly<{
     canGoForward: boolean;
     lockIdentifier: Double;
 }>;
-export declare type WebViewCustomMenuSelectionEvent = Readonly<{
+export type WebViewCustomMenuSelectionEvent = Readonly<{
     label: string;
     key: string;
     selectedText: string;
 }>;
-export declare type WebViewMessageEvent = Readonly<{
+export type WebViewMessageEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -23,7 +23,7 @@ export declare type WebViewMessageEvent = Readonly<{
     lockIdentifier: Double;
     data: string;
 }>;
-export declare type WebViewHttpErrorEvent = Readonly<{
+export type WebViewHttpErrorEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -33,7 +33,7 @@ export declare type WebViewHttpErrorEvent = Readonly<{
     description: string;
     statusCode: Int32;
 }>;
-export declare type WebViewErrorEvent = Readonly<{
+export type WebViewErrorEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -44,7 +44,7 @@ export declare type WebViewErrorEvent = Readonly<{
     code: Int32;
     description: string;
 }>;
-export declare type WebViewNativeProgressEvent = Readonly<{
+export type WebViewNativeProgressEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -53,7 +53,7 @@ export declare type WebViewNativeProgressEvent = Readonly<{
     lockIdentifier: Double;
     progress: Double;
 }>;
-export declare type WebViewNavigationEvent = Readonly<{
+export type WebViewNavigationEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -63,7 +63,7 @@ export declare type WebViewNavigationEvent = Readonly<{
     navigationType: 'click' | 'formsubmit' | 'backforward' | 'reload' | 'formresubmit' | 'other';
     mainDocumentURL?: string;
 }>;
-export declare type ShouldStartLoadRequestEvent = Readonly<{
+export type ShouldStartLoadRequestEvent = Readonly<{
     url: string;
     loading: boolean;
     title: string;
@@ -74,7 +74,7 @@ export declare type ShouldStartLoadRequestEvent = Readonly<{
     mainDocumentURL?: string;
     isTopFrame: boolean;
 }>;
-declare type ScrollEvent = Readonly<{
+type ScrollEvent = Readonly<{
     contentInset: {
         bottom: Double;
         left: Double;
@@ -104,13 +104,13 @@ declare type ScrollEvent = Readonly<{
     zoomScale?: Double;
     responderIgnoreScroll?: boolean;
 }>;
-declare type WebViewRenderProcessGoneEvent = Readonly<{
+type WebViewRenderProcessGoneEvent = Readonly<{
     didCrash: boolean;
 }>;
-declare type WebViewBlobDownloadEvent = Readonly<{
+type WebViewBlobDownloadEvent = Readonly<{
     base64String: string;
 }>;
-declare type WebViewFileDownloadEvent = Readonly<{
+type WebViewFileDownloadEvent = Readonly<{
     downloadUrl: string;
     disposition?: string;
 }>;

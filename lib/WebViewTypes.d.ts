@@ -1,8 +1,8 @@
 import { ReactElement, Component, ComponentProps } from 'react';
 import { NativeSyntheticEvent, ViewProps, StyleProp, ViewStyle, NativeMethodsMixin, UIManagerStatic, NativeScrollEvent } from 'react-native';
 import type NativeWebViewComponent from './RNCWebViewNativeComponent';
-declare type WebViewCommands = 'goForward' | 'goBack' | 'reload' | 'stopLoading' | 'postMessage' | 'injectJavaScript' | 'loadUrl' | 'requestFocus';
-declare type AndroidWebViewCommands = 'clearHistory' | 'clearCache' | 'clearFormData';
+type WebViewCommands = 'goForward' | 'goBack' | 'reload' | 'stopLoading' | 'postMessage' | 'injectJavaScript' | 'loadUrl' | 'requestFocus';
+type AndroidWebViewCommands = 'clearHistory' | 'clearCache' | 'clearFormData';
 interface RNCWebViewUIManager<Commands extends string> extends UIManagerStatic {
     getViewManagerConfig: (name: string) => {
         Commands: {
@@ -10,11 +10,11 @@ interface RNCWebViewUIManager<Commands extends string> extends UIManagerStatic {
         };
     };
 }
-export declare type RNCWebViewUIManagerAndroid = RNCWebViewUIManager<WebViewCommands | AndroidWebViewCommands>;
-export declare type RNCWebViewUIManagerIOS = RNCWebViewUIManager<WebViewCommands>;
-export declare type RNCWebViewUIManagerMacOS = RNCWebViewUIManager<WebViewCommands>;
-export declare type RNCWebViewUIManagerWindows = RNCWebViewUIManager<WebViewCommands>;
-declare type WebViewState = 'IDLE' | 'LOADING' | 'ERROR';
+export type RNCWebViewUIManagerAndroid = RNCWebViewUIManager<WebViewCommands | AndroidWebViewCommands>;
+export type RNCWebViewUIManagerIOS = RNCWebViewUIManager<WebViewCommands>;
+export type RNCWebViewUIManagerMacOS = RNCWebViewUIManager<WebViewCommands>;
+export type RNCWebViewUIManagerWindows = RNCWebViewUIManager<WebViewCommands>;
+type WebViewState = 'IDLE' | 'LOADING' | 'ERROR';
 interface BaseState {
     viewState: WebViewState;
 }
@@ -26,8 +26,8 @@ interface ErrorState extends BaseState {
     viewState: 'ERROR';
     lastErrorEvent: WebViewError;
 }
-export declare type State = NormalState | ErrorState;
-declare type Constructor<T> = new (...args: any[]) => T;
+export type State = NormalState | ErrorState;
+type Constructor<T> = new (...args: any[]) => T;
 declare class NativeWebViewMacOSComponent extends Component<MacOSNativeWebViewProps> {
 }
 declare const NativeWebViewMacOSBase: Constructor<NativeMethodsMixin> & typeof NativeWebViewMacOSComponent;
@@ -69,7 +69,7 @@ export interface FileDownload {
     downloadUrl: string;
     disposition?: string;
 }
-export declare type DecelerationRateConstant = 'normal' | 'fast';
+export type DecelerationRateConstant = 'normal' | 'fast';
 export interface WebViewMessage extends WebViewNativeEvent {
     data: string;
 }
@@ -88,22 +88,22 @@ export interface WebViewHttpError extends WebViewNativeEvent {
 export interface WebViewRenderProcessGoneDetail {
     didCrash: boolean;
 }
-export declare type WebViewEvent = NativeSyntheticEvent<WebViewNativeEvent>;
-export declare type WebViewProgressEvent = NativeSyntheticEvent<WebViewNativeProgressEvent>;
-export declare type WebViewNavigationEvent = NativeSyntheticEvent<WebViewNavigation>;
-export declare type ShouldStartLoadRequestEvent = NativeSyntheticEvent<ShouldStartLoadRequest>;
-export declare type BlobDownloadEvent = NativeSyntheticEvent<BlobDownload>;
-export declare type FileDownloadEvent = NativeSyntheticEvent<FileDownload>;
-export declare type WebViewMessageEvent = NativeSyntheticEvent<WebViewMessage>;
-export declare type WebViewErrorEvent = NativeSyntheticEvent<WebViewError>;
-export declare type WebViewTerminatedEvent = NativeSyntheticEvent<WebViewNativeEvent>;
-export declare type WebViewHttpErrorEvent = NativeSyntheticEvent<WebViewHttpError>;
-export declare type WebViewRenderProcessGoneEvent = NativeSyntheticEvent<WebViewRenderProcessGoneDetail>;
-export declare type WebViewScrollEvent = NativeSyntheticEvent<NativeScrollEvent>;
-export declare type DataDetectorTypes = 'phoneNumber' | 'link' | 'address' | 'calendarEvent' | 'trackingNumber' | 'flightNumber' | 'lookupSuggestion' | 'none' | 'all';
-export declare type OverScrollModeType = 'always' | 'content' | 'never';
-export declare type CacheMode = 'LOAD_DEFAULT' | 'LOAD_CACHE_ONLY' | 'LOAD_CACHE_ELSE_NETWORK' | 'LOAD_NO_CACHE';
-export declare type AndroidLayerType = 'none' | 'software' | 'hardware';
+export type WebViewEvent = NativeSyntheticEvent<WebViewNativeEvent>;
+export type WebViewProgressEvent = NativeSyntheticEvent<WebViewNativeProgressEvent>;
+export type WebViewNavigationEvent = NativeSyntheticEvent<WebViewNavigation>;
+export type ShouldStartLoadRequestEvent = NativeSyntheticEvent<ShouldStartLoadRequest>;
+export type BlobDownloadEvent = NativeSyntheticEvent<BlobDownload>;
+export type FileDownloadEvent = NativeSyntheticEvent<FileDownload>;
+export type WebViewMessageEvent = NativeSyntheticEvent<WebViewMessage>;
+export type WebViewErrorEvent = NativeSyntheticEvent<WebViewError>;
+export type WebViewTerminatedEvent = NativeSyntheticEvent<WebViewNativeEvent>;
+export type WebViewHttpErrorEvent = NativeSyntheticEvent<WebViewHttpError>;
+export type WebViewRenderProcessGoneEvent = NativeSyntheticEvent<WebViewRenderProcessGoneDetail>;
+export type WebViewScrollEvent = NativeSyntheticEvent<NativeScrollEvent>;
+export type DataDetectorTypes = 'phoneNumber' | 'link' | 'address' | 'calendarEvent' | 'trackingNumber' | 'flightNumber' | 'lookupSuggestion' | 'none' | 'all';
+export type OverScrollModeType = 'always' | 'content' | 'never';
+export type CacheMode = 'LOAD_DEFAULT' | 'LOAD_CACHE_ONLY' | 'LOAD_CACHE_ELSE_NETWORK' | 'LOAD_NO_CACHE';
+export type AndroidLayerType = 'none' | 'software' | 'hardware';
 export interface WebViewSourceUri {
     /**
      * The URI to load in the `WebView`. Can be a local or remote file.
@@ -148,7 +148,7 @@ export interface WebViewCustomMenuItems {
      */
     label: string;
 }
-export declare type WebViewSource = WebViewSourceUri | WebViewSourceHtml;
+export type WebViewSource = WebViewSourceUri | WebViewSourceHtml;
 export interface WebViewCookie {
     name: string;
     value: string;
@@ -183,7 +183,7 @@ export interface WebViewNativeConfig {
      */
     viewManager?: ViewManager;
 }
-export declare type OnShouldStartLoadWithRequest = (event: ShouldStartLoadRequest) => boolean;
+export type OnShouldStartLoadWithRequest = (event: ShouldStartLoadRequest) => boolean;
 export interface BasicAuthCredential {
     /**
      * A username used for basic authentication.

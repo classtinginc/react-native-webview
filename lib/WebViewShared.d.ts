@@ -1,7 +1,7 @@
 import React from 'react';
 import { OnShouldStartLoadWithRequest, ShouldStartLoadRequestEvent, WebViewError, WebViewErrorEvent, WebViewHttpErrorEvent, WebViewMessageEvent, WebViewNavigation, WebViewNavigationEvent, WebViewProgressEvent, WebViewRenderProcessGoneEvent, WebViewTerminatedEvent } from './WebViewTypes';
 declare const defaultOriginWhitelist: readonly ["http://*", "https://*"];
-declare const createOnShouldStartLoadWithRequest: (loadRequest: (shouldStart: boolean, url: string, lockIdentifier: number) => void, originWhitelist: readonly string[], onShouldStartLoadWithRequest?: OnShouldStartLoadWithRequest | undefined) => ({ nativeEvent }: ShouldStartLoadRequestEvent) => void;
+declare const createOnShouldStartLoadWithRequest: (loadRequest: (shouldStart: boolean, url: string, lockIdentifier: number) => void, originWhitelist: readonly string[], onShouldStartLoadWithRequest?: OnShouldStartLoadWithRequest) => ({ nativeEvent }: ShouldStartLoadRequestEvent) => void;
 declare const defaultRenderLoading: () => JSX.Element;
 declare const defaultRenderError: (errorDomain: string | undefined, errorCode: number, errorDesc: string) => JSX.Element;
 export { defaultOriginWhitelist, createOnShouldStartLoadWithRequest, defaultRenderLoading, defaultRenderError, };
