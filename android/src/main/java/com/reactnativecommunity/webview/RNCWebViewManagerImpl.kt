@@ -418,6 +418,7 @@ class RNCWebViewManagerImpl {
                 return
             }
             if (source.hasKey("uri")) {
+                val defaultUserAgent = WebSettings.getDefaultUserAgent(view.context)
                 val url = source.getString("uri")
                 val previousUrl = view.url
                 if (previousUrl != null && previousUrl == url) {
@@ -451,7 +452,7 @@ class RNCWebViewManagerImpl {
                         val name = headerCasted.get("name") ?: ""
                         val value = headerCasted.get("value") ?: ""
                         if ("user-agent" == name.lowercase(Locale.ENGLISH)) {
-                          view.settings.userAgentString = value
+                          view.settings.userAgentString = "$defaultUserAgent $value"
                         } else {
                           headerMap[name] = value
                         }
@@ -462,7 +463,8 @@ class RNCWebViewManagerImpl {
                       while (iter.hasNextKey()) {
                         val key = iter.nextKey()
                         if ("user-agent" == key.lowercase(Locale.ENGLISH)) {
-                          view.settings.userAgentString = headers.getString(key)
+                          val customUserAgent = headers.getString(key)
+                          view.settings.userAgentString = "$defaultUserAgent $customUserAgent"
                         } else {
                           headerMap[key] = headers.getString(key)
                         }
