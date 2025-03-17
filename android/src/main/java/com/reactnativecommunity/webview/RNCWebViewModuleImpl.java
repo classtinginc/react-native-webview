@@ -230,7 +230,7 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
             Media[] images = new Gson().fromJson(data.getStringExtra(Extra.DATA), Media[].class);
             ArrayList<Uri> uriList = new ArrayList();
             for (Media image: images) {
-                uriList.add(Uri.fromFile(new File(image.getThumbPath())));
+                uriList.add(Uri.parse(image.getThumbPath()));
             }
             return uriList.toArray(new Uri[uriList.size()]);
         }
