@@ -42,9 +42,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.classtinginc.image_picker.models.Image;
+import com.classtinginc.image_picker.models.Media;
 import com.classtinginc.image_picker.consts.Extra;
-import com.classtinginc.image_picker.folders.LocalFoldersActivity;
+import com.classtinginc.image_picker.folders.ImagePickerActivity;
 import com.google.gson.Gson;
 
 import static android.app.Activity.RESULT_OK;
@@ -57,9 +57,8 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
     public static final int FILE_DOWNLOAD_PERMISSION_REQUEST = 1;
 
     // Image picker constants
-    private int IMAGE_PICKER_STYLE = 0;
+    private String IMAGE_PICKER_MEDIA_TYPE = "image";
     private int IMAGE_PICKER_MAX_SIZE = 50;
-    private int IMAGE_PICKER_AVAILABLE_SIZE = 50;
 
     final private ReactApplicationContext mContext;
 
@@ -228,9 +227,9 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
 
         // From Classting custom image picker
         if (data.hasExtra(Extra.DATA)) {
-            Image[] images = new Gson().fromJson(data.getStringExtra(Extra.DATA), Image[].class);
+            Media[] images = new Gson().fromJson(data.getStringExtra(Extra.DATA), Media[].class);
             ArrayList<Uri> uriList = new ArrayList();
-            for (Image image: images) {
+            for (Media image: images) {
                 uriList.add(Uri.fromFile(new File(image.getThumbPath())));
             }
             return uriList.toArray(new Uri[uriList.size()]);
@@ -306,7 +305,7 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
         Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
         // Using custom image picker when Accept-Type is `*/images` only
         if (isSingleImageType(acceptTypes)) {
-            Intent imagePickerIntent = getImagePickerIntent(allowMultiple);
+            Intent imagePickerIntent = getImagePickerIntent();
             activity.startActivityForResult(imagePickerIntent, PICKER);
             return true;
         } else if (isCaptureEnabled) {
@@ -386,12 +385,10 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
         return !acceptType.equals("") && acceptsImages(acceptType);
     }
 
-    private Intent getImagePickerIntent(boolean allowMultiple) {
-        Intent intent = new Intent(mContext.getCurrentActivity(), LocalFoldersActivity.class);
-        intent.putExtra(Extra.STYLE, IMAGE_PICKER_STYLE);
+    private Intent getImagePickerIntent() {
+        Intent intent = new Intent(mContext.getCurrentActivity(), ImagePickerActivity.class);
+        intent.putExtra(Extra.MEDIA_TYPE, IMAGE_PICKER_MEDIA_TYPE);
         intent.putExtra(Extra.MAX_SIZE, IMAGE_PICKER_MAX_SIZE);
-        intent.putExtra(Extra.AVAILABLE_SIZE, IMAGE_PICKER_AVAILABLE_SIZE);
-        intent.putExtra(Extra.ALLOW_MULTIPLE, allowMultiple);
         return intent;
     }
 
