@@ -4,7 +4,6 @@
 
 # Xcode
 #
-.xcode.env
 build/
 *.pbxuser
 !default.pbxuser
@@ -54,7 +53,6 @@ android/gradle
 android/gradlew
 android/gradlew.bat
 
-lib/
 .classpath
 .project
 .settings/
